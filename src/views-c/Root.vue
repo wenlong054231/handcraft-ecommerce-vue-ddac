@@ -1,65 +1,58 @@
-<script lang='ts'>
+<script lang="ts">
   import { defineComponent } from 'vue'
   import FooterComp from '@/components/FooterComp.vue'
 
   export default defineComponent({
     name: 'Root',
-    components: { FooterComp }
+    components: { FooterComp },
+    methods: {
+      logout(): void {
+        this.$router.push('/login')
+      },
+    },
   })
 </script>
 
 <template>
-  <header>
-    <div class='header-left'>
-      <nav><p>Home</p></nav>
-      <nav><p>Old History</p></nav>
+  <el-menu mode="horizontal" :ellipsis="false" :router="true" menu-trigger="click">
+    <el-menu-item index="/home">
+      <span
+        ><el-icon><img src="../assets/images/logo.svg" alt="logo" /></el-icon>Home</span
+      >
+    </el-menu-item>
+    <div class="flex-grow"></div>
+    <el-menu-item index="/cart">
+      <span>Cart</span>
+    </el-menu-item>
+    <el-sub-menu index="2">
+      <template #title>Menu</template>
+      <el-menu-item index="/history">
+        <span>Order History</span>
+      </el-menu-item>
+      <el-menu-item index="/profile">
+        <span>Profile</span>
+      </el-menu-item>
+      <el-menu-item index="/login">
+        <span>Log Out</span>
+      </el-menu-item>
+    </el-sub-menu>
+  </el-menu>
+  <div class="page">
+    <div class="content">
+      <router-view></router-view>
     </div>
-    <div class='header-right'>
-      <nav><p>Cart</p></nav>
-      <nav><p>Welcome Back</p></nav>
-      <el-button type='danger'>Log Out</el-button>
-    </div>
-  </header>
-  <div class='page'>
-    <router-view></router-view>
   </div>
   <footer-comp></footer-comp>
 </template>
 
-<style scoped lang='postcss'>
-  header {
-    position: relative;
-    top: 0;
-    left: 0;
-    height: 3rem;
-    width: 100%;
-    background: #e8eaed;
-    box-shadow: 1px 1px 5px 1px rgba(128, 128, 128, 0.4);
-    @apply flex flex-row
-  }
-
-  .header-left {
-    padding-left: 3rem;
-    @apply flex flex-row gap-3 grow place-items-center;
-  }
-
-  .header-right {
-    padding-right: 3rem;
-    @apply flex flex-row gap-3 place-items-center;
-  }
-
-  nav {
-    cursor: pointer;
-    padding-left: 5px;
-    padding-right: 5px;
-    transition: all 0.3s;
-  }
-
-  nav:hover{
-    @apply text-red-600;
-  }
-
-  .page{
+<style scoped lang="postcss">
+  .page {
     min-height: 100vh;
+    @apply flex place-content-center;
+  }
+
+  .content {
+    width: 60rem;
+    @apply pt-20;
   }
 </style>

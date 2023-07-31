@@ -7,16 +7,19 @@ import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [vue(),
+  base: './',
+  plugins: [
+    vue(),
     AutoImport({
-      resolvers: [ElementPlusResolver()]
+      resolvers: [ElementPlusResolver()],
     }),
     Components({
-      resolvers: [ElementPlusResolver()]
-    })],
+      resolvers: [ElementPlusResolver()],
+    }),
+  ],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src') // 添加你的别名配置
-    }
-  }
+      '@': path.resolve(__dirname, './src'), // 添加你的别名配置
+    },
+  },
 })

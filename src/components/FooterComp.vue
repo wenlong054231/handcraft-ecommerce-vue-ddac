@@ -14,10 +14,8 @@
 
 <style scoped lang='postcss'>
 footer{
-  background: #278f5f ;
-  color: white;
   height: 2rem;
   width: 100%;
-  @apply p-1
+  @apply p-1 bg-primary-700 text-white;
 }
 </style>

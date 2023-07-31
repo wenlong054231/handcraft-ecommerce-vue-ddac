@@ -9,15 +9,15 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@element-plus/icons-vue": "^2.1.0",
     "@fortawesome/fontawesome-svg-core": "^6.4.0",
     "@fortawesome/free-brands-svg-icons": "^6.4.0",
     "@fortawesome/free-regular-svg-icons": "^6.4.0",
     "@fortawesome/free-solid-svg-icons": "^6.4.0",
     "@fortawesome/vue-fontawesome": "^3.0.3",
     "axios": "^1.4.0",
-    "cirrus-ui": "^0.7.1",
+    "default-passive-events": "^2.0.0",
     "element-plus": "^2.3.8",
-    "particlesjs": "^2.2.3",
     "postcss-apply": "^0.12.0",
     "vue": "^3.2.47",
     "vue-router": "^4.2.2",
