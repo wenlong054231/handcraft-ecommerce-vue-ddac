@@ -3,7 +3,10 @@
   import { ArrowLeft } from '@element-plus/icons-vue'
   import CartComp from '@/components/CartComp.vue'
   import { CartItem } from '@/types/models'
-
+  import { loadStripe } from '@stripe/stripe-js';
+  import { ElMessage } from 'element-plus'
+  import axios from 'axios'
+  
   export default defineComponent({
     name: 'Cart',
     components: { CartComp },
@@ -12,7 +15,65 @@
         cartItems: this.$store.getters.getCart as CartItem[]
       }
     },
-    methods: {},
+    methods: {
+      async handleCheckout() {
+      const stripe = await loadStripe('pk_test_51NdMMcDbO4mCdKWG1syZJEafkTDYdL5ONFD9TMpMUXGEz804Q9APuRAc5IqWZdVgKQSvWxF6iQUPsMCzjGdmMIPZ00aBFJGn6X');
+
+      try {
+        // Create a payment session on the server
+        const response = await axios.post('http://localhost:8080/api/v1/checkout/create-session', null, {
+    params: {
+        amount: parseFloat(this.getTotalPrice), // Make sure to call the function to get the total price
+    },
+});
+
+          
+        if (stripe) {
+                  
+        // Redirect user to Stripe checkout page
+        const result = await stripe.redirectToCheckout({
+          sessionId: response.data,
+        });
+        
+           if (result.error) {
+             // Handle error
+             console.error(result.error.message);
+           }else{
+
+            const username = sessionStorage.getItem('username') || '';
+            const userResponse = await axios.get('http://localhost:8080/api/v1/profile', {
+            params: {
+              username: username // Pass the retrieved username to the API
+            },
+          });
+
+          const userFirstName = userResponse.data.firstName;
+          const userLastName = userResponse.data.lastName;
+          const userId = userResponse.data.id;
+          
+            const orderResponse = await axios.post('http://localhost:8080/api/v1/orders/create', {
+                customerId: userId,
+                totalPrice: this.getTotalPrice,
+                placedDate: new Date(), 
+                completeDate: null,
+                status:'Pending',
+                customerName:`${userFirstName} ${userLastName}`,
+                itemIds: this.cartItems.map(item => item.id),
+              });
+
+              ElMessage.success({
+                message: 'Sign-up Success!',
+              });
+
+           }
+        }         
+      
+      } catch (error) {
+        // Handle error
+        console.error('Error during checkout:', error);
+      }
+    },
+    },
     computed: {
       ArrowLeft() {
         return ArrowLeft
@@ -62,7 +123,7 @@
           </ul>
         </el-descriptions-item>
       </el-descriptions>
-      <el-button class='float-right m-4' type='primary'>Check Out</el-button>
+      <el-button class='float-right m-4' type='primary' @click="handleCheckout()">Check Out</el-button>
     </div>
   </div>
 </template>

@@ -1,52 +1,181 @@
 <script lang="ts">
-  import { defineComponent } from 'vue'
-  import { MenuItemData } from '@/types/models'
-  import { fetchMenuData } from '@/assets/scripts/admin-requests'
-  import { Search } from '@element-plus/icons-vue'
-  import ItemComp from '@/components/ItemComp.vue'
-  import ItemEditComp from '@/components/ItemEditComp.vue'
-  import { ElMessage } from 'element-plus'
+import { defineComponent, ref } from 'vue'
+import { fetchMenuData } from '@/assets/scripts/admin-requests' 
+import { MenuItemData } from '@/types/models'
+import { Search } from '@element-plus/icons-vue'
+import ItemComp from '@/components/ItemComp.vue'
+import ItemEditComp from '@/components/ItemEditComp.vue'
+import { ElMessage } from 'element-plus'
+import axios from 'axios'
 
-  export default defineComponent({
-    name: 'MenuManage',
-    components: { ItemEditComp, ItemComp, Search },
-    data() {
-      return {
-        pageInfo: {
-          page: 1,
-          size: 10,
-          keywords: '',
-        },
-        menu: [] as MenuItemData[],
-        showAddDialog: false,
-        showEditDialog: false,
-        editItem: {} as MenuItemData,
+export default defineComponent({
+  name: 'MenuManage',
+  components: { ItemEditComp, ItemComp, Search },
+  setup() {
+    const pageInfo = ref({
+      page: 1,
+      size: 10,
+      keywords: '',
+    })
+
+    const menu = ref([] as MenuItemData[])
+    const showAddDialog = ref(false)
+    const showEditDialog = ref(false)
+    const editItem = ref({} as MenuItemData)
+    const fileInputRef = ref<HTMLInputElement | null>(null); // Define the type of fileInputRef
+
+    const fetchMenu = async () => {
+      try {
+        const response = await fetchMenuData()
+        menu.value = response
+      } catch (error) {
+        console.error('Error fetching menu data:', error)
       }
-    },
-    methods: {
-      fetchMenu() {
-        this.menu = fetchMenuData()
-      },
-      filterStatus(value: string, row: MenuItemData) {
-        return row.status === value
-      },
-      handleEdit(index: number, row: MenuItemData) {
-        this.editItem = row
-        this.showEditDialog = true
-      },
-      handleDelete(index: number, row: MenuItemData) {
-        ElMessage.warning('Item Deleted: ' + JSON.stringify(row))
-      },
-      addItem() {
-        this.editItem = {} as MenuItemData
-        this.showAddDialog = true
-      },
-      submit() {},
-    },
-    mounted() {
-      this.fetchMenu()
-    },
-  })
+    }
+
+    const filterStatus = (value: string, row: MenuItemData) => {
+      return row.status === value
+    }
+
+    const handleEdit = (index: number, row: MenuItemData) => {
+      editItem.value = row
+      showEditDialog.value = true
+    }
+
+    const handleDelete = async (index: number, row: MenuItemData) => {
+      try {
+        const response = await axios.delete(`http://localhost:8080/api/v1/products/delete/${row.id}`);
+        if (response.status === 204) {
+          ElMessage.success('Item deleted successfully');
+          fetchMenu();
+        } else {
+          // console.error('Failed to delete item:', response.data.error);
+          ElMessage.error('Failed to delete item');
+        }
+      } catch (error) {
+        // console.error('Error deleting item:', error);
+        ElMessage.error('An error occurred while deleting the item');
+      }
+    }
+
+    const addItem = () => {
+      editItem.value = {} as MenuItemData
+      showAddDialog.value = true
+    }
+
+    const selectedFile = ref<File | null>(null); // Declare selectedFile
+
+    const handleSelectedFile = (file: File | null) => {
+      selectedFile.value = file;
+
+      console.log(selectedFile.value);
+    };
+    const submit = async () => {
+      try {
+        
+        const payload = {
+          title: editItem.value.title,
+          price: editItem.value.price,
+          isBestSeller: editItem.value.isBestSeller,
+          status: editItem.value.status,
+          image: editItem.value.img, // If the image URL is being used, pass it here
+        }
+        console.log(selectedFile.value);
+        
+        if (selectedFile.value) {
+          const formData = new FormData();
+          formData.append('file', selectedFile.value);
+
+          // Upload image to backend
+          const response = await axios.post(
+            'http://localhost:8080/api/v1/images/upload',
+            formData,
+            {
+              headers: {
+                'Content-Type': 'multipart/form-data',
+              },
+            }
+          );
+
+          if (response.status === 200) {
+            payload.image = response.data; // Set the image URL to the response data from the backend
+          } else {
+            console.error('Failed to upload image:', response.data);
+            ElMessage.error('Failed to upload image');
+            return;
+          }
+        }
+
+        const response = await axios.post(
+          'http://localhost:8080/api/v1/products/add',
+          payload
+        )
+
+        if (response.status === 201) {
+          // Check if the status code is CREATED (201)
+          showAddDialog.value = false
+          ElMessage.success('Item added successfully')
+          fetchMenu()
+        } else {
+          console.error('Failed to add item:', response.data.error)
+          ElMessage.error('Failed to add item')
+        }
+      } catch (error) {
+        console.error('Error adding item:', error)
+        ElMessage.error('An error occurred while adding the item')
+      }
+    }
+    
+    const edit = async () => {
+      try {
+        const payload = {
+          title: editItem.value.title,
+          price: editItem.value.price,
+          bestSeller: editItem.value.isBestSeller,
+          status: editItem.value.status,
+          image: editItem.value.img,
+        }
+
+        const response = await axios.put(
+          `http://localhost:8080/api/v1/products/update/${editItem.value.id}`, // Add the correct endpoint for updating
+          payload
+        )
+        console.log('Edit Payload:', payload); 
+        if (response.status === 200) {
+          showEditDialog.value = false
+          ElMessage.success('Item updated successfully')
+          fetchMenu()
+        } else {
+          // console.error('Failed to update item:', response.data.error)
+          ElMessage.error('Failed to update item')
+        }
+      } catch (error) {
+        // console.error('Error updating item:', error)
+        ElMessage.error('An error occurred while updating the item')
+      }
+    }
+
+
+    fetchMenu()
+
+    return {
+      pageInfo,
+      menu,
+      showAddDialog,
+      showEditDialog,
+      editItem,
+      fetchMenu,
+      filterStatus,
+      handleEdit,
+      handleDelete,
+      addItem,
+      submit,
+      edit,
+      fileInputRef,
+      selectedFile,
+    }
+  },
+})
 </script>
 
 <template>
@@ -101,15 +230,15 @@
       </el-table>
     </div>
     <el-dialog class="px-10" v-model="showAddDialog" title="Add Item" width="50rem">
-      <item-edit-comp :item="editItem"></item-edit-comp>
+      <item-edit-comp :item="editItem" @selected-file="selectedFile = $event"></item-edit-comp>
       <template #footer>
         <span class="dialog-footer"><el-button @click="submit">Submit</el-button></span>
       </template>
     </el-dialog>
     <el-dialog class="px-10" v-model="showEditDialog" title="Edit Item" width="50rem">
-      <item-edit-comp :item="editItem"></item-edit-comp>
+      <item-edit-comp :item="editItem" @selected-file="selectedFile = $event"></item-edit-comp>
       <template #footer>
-        <span class="dialog-footer"><el-button @click="submit">Submit</el-button></span>
+        <span class="dialog-footer"><el-button @click="edit">Submit</el-button></span>
       </template>
     </el-dialog>
   </div>

@@ -19,8 +19,8 @@ declare interface MenuItemData extends MenuItem {
 }
 
 declare interface UserDetail {
-  firstName: string
-  lastName: string
+  firstname: string
+  lastname: string
   username: string
   email: string
   password: string

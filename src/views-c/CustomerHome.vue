@@ -26,15 +26,16 @@
         this.$store.commit('addCartItem', this.detailItem)
         this.showItemDialog = false
       },
-      fetchMenu() {
-        this.menu = fetchMenu()
+      async fetchMenu() {
+        this.menu = await fetchMenu()
       },
     },
-    mounted() {
-      this.fetchMenu()
+    async mounted() {
+      await this.fetchMenu()
     },
   })
 </script>
+
 
 <template>
   <div>

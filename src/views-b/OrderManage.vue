@@ -5,6 +5,7 @@
   import { fetchOrders } from '@/assets/scripts/admin-requests'
   import ItemEditComp from '@/components/ItemEditComp.vue'
   import OrderComp from '@/components/OrderComp.vue'
+  import axios from 'axios'
 
   export default defineComponent({
     name: 'OrderManage',
@@ -17,8 +18,8 @@
       }
     },
     methods: {
-      fetchOrders() {
-        this.orders = fetchOrders()
+      async fetchOrders() {
+        this.orders = await fetchOrders();
       },
       filterStatus(value: string, row: OrderData) {
         return row.status === value
@@ -27,8 +28,26 @@
         this.orderId = row.id
         this.showDetail = true
       },
-      handleRefund(index: number, row: OrderData) {},
-      handleCancel(index: number, row: OrderData) {},
+      async handleRefund(index: number, row: OrderData) {
+      try {
+        const response = await axios.post(`http://localhost:8080/api/v1/orders/refund/${row.id}`);
+        console.log(response.data);
+        // Update orders after successful refund
+        this.fetchOrders();
+      } catch (error) {
+        console.error('Error refunding order:', error);
+      }
+    },
+       async handleCancel(index: number, row: OrderData) {
+      try {
+        const response = await axios.post(`http://localhost:8080/api/v1/orders/cancel/${row.id}`);
+        console.log(response.data);
+        // Update orders after successful cancel
+        this.fetchOrders();
+      } catch (error) {
+        console.error('Error canceling order:', error);
+      }
+    },
     },
     mounted() {
       this.fetchOrders()

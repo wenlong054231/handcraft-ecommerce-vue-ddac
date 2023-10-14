@@ -1,16 +1,59 @@
 <script lang='ts'>
-  import { defineComponent } from 'vue'
   import { Profile } from '@/types/models'
+  import { defineComponent, onMounted, ref } from 'vue'
+  import axios from 'axios'
 
   export default defineComponent({
     name: 'Profile',
-    data() {
+    setup() {
+      const profile = ref<Profile>({
+        id: '',
+        username: '',
+        email: '',
+        avatar: '',
+        mobile: '',
+        address: ''
+      })
+
+      const fetchProfile = async () => {
+        try {
+
+          
+          // Retrieve the username from session storage or wherever it is stored
+          const username = sessionStorage.getItem('username') || ''; // Modify this line
+
+          if (username.trim() !== '') {
+            // Username is not empty
+            console.log('Username is not empty:', username);
+          } else {
+            // Username is empty
+            console.log('Username is empty');
+          }
+          const response = await axios.get('http://localhost:8080/api/v1/profile', {
+            params: {
+              username: username // Pass the retrieved username to the API
+            }
+          })
+
+          if (response.data) {
+            profile.value = response.data
+          }
+        } catch (error) {
+          console.error('Error fetching profile:', error)
+        }
+      }
+
+      onMounted(() => {
+        fetchProfile()
+      })
+
       return {
-        profile: this.$store.getters.getProfile as Profile
+        profile
       }
     }
   })
 </script>
+
 
 <template>
   <h3>Profile</h3>

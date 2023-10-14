@@ -14,6 +14,9 @@
       updateCartItem() {
         this.$store.commit('updateCartItem', this.item)
       },
+      getImageUrl(imgName: string): string {
+       return `https://web-static-handicraft.s3.amazonaws.com/assets/items/${imgName}`;
+    },
     },
   })
 </script>
@@ -22,7 +25,7 @@
   <div class="flex place-content-center">
     <div class="content">
       <div class="grid grid-cols-2">
-        <el-image style="width: 12rem; height: 12rem" :src="item.img"></el-image>
+        <el-image style="width: 12rem; height: 12rem" :src="getImageUrl(item.img)"></el-image>
         <div class="flex flex-col gap-3 mt-3">
           <h5>{{ item.title }}</h5>
           <div class="flex flex-row items-center gap-4">

@@ -2,6 +2,9 @@
   import { defineComponent } from 'vue'
   import { ArrowLeft } from '@element-plus/icons-vue'
   import { login, LoginType } from '@/assets/scripts/user-requests'
+  import axios from 'axios'
+  import { ElMessage } from 'element-plus';
+  import { AxiosError } from 'axios';
 
   export default defineComponent({
     name: 'Login',
@@ -20,14 +23,40 @@
       }
     },
     methods: {
-      login(): void {
-        login()
-        if (this.loginForm.loginType === '1') {
-          this.$router.push('/admin/home')
-        } else {
-          this.$router.push('/home')
-        }
-      },
+    async login() {
+    try {
+          let url = '';
+          if (this.loginForm.loginType === '1') {
+            url = 'http://localhost:8080/api/v1/user/adminlogin';
+          } else {
+            url = 'http://localhost:8080/api/v1/user/custlogin';
+          }
+          
+          const response = await axios.post(url, {
+            username: this.loginForm.username,
+            password: this.loginForm.password,
+          });
+          
+          if (response.data.success) {           
+            sessionStorage.setItem('username', this.loginForm.username);
+            
+            if (this.loginForm.loginType === '1') {
+              this.$router.push('/admin/home');
+            } else {
+              this.$router.push('/home');
+            }
+          } else {
+            ElMessage.error('Invalid username or password.');
+          }
+      } catch (error) {
+        const axiosError = error as AxiosError;
+        if (axiosError.response && axiosError.response.status === 401) {
+            ElMessage.error('Invalid username or password.');
+          } else {
+            ElMessage.error('Error occurred while logging in.');
+          }
+      }
+  },
     },
   })
 </script>

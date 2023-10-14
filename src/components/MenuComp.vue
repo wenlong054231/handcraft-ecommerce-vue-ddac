@@ -19,6 +19,9 @@
       handleClick(item: MenuItem): void {
         this.goDetail(item)
       },
+      getImageUrl(imgName: string): string {
+       return `https://web-static-handicraft.s3.amazonaws.com/assets/items/${imgName}`;
+    },
     },
   })
 </script>
@@ -27,7 +30,7 @@
   <div class="flex flex-wrap p-3 gap-6">
     <div class="card" v-for="item in menuItems">
       <div class="flex place-content-center">
-        <el-image style="width: 10rem; height: 10rem" :src="item.img" alt="Item Picture" />
+        <el-image style="width: 10rem; height: 10rem" :src="getImageUrl(item.img)" alt="Item Picture" />
       </div>
       <p class="font-bold">{{ item.title }}</p>
       <p>Price: RM {{ item.price }}</p>
